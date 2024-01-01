@@ -1,0 +1,26 @@
+name: Format suggestions
+
+on:
+  pull_request:
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@latest
+        with:
+          version: 1
+      - name: JuliaFormatter
+        shell: julia --color=yes {0}
+        run: |
+          using Pkg
+          Pkg.add("JuliaFormatter")
+          using JuliaFormatter
+          # Currently the formatter isn't properly idempotent
+          format("."; verbose=true)
+          format("."; verbose=true)
+      - uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: JuliaFormatter
+          fail_on_error: true
