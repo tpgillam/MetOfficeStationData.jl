@@ -17,6 +17,24 @@ function _download_as_string(short_name::AbstractString)
     return String(take!(download(_data_url(short_name), IOBuffer())))
 end
 
+"""
+    get_frame(short_name) -> DataFrame
+
+Get the data from the station specified by `short_name`.
+
+The column names and units match the raw form provided at 
+https://www.metoffice.gov.uk/research/climate/maps-and-data/historic-station-data
+
+# Returns
+A dataframe with the following columns:
+    - yyyy (Int64): The year
+    - mm (Int64): The month
+    - tmax (Float64?): The maximum temperature / °C
+    - tmin (Float64?): The minimum temperature / °C
+    - af (Int64?): Days of air frost / days
+    - rain (Float64?): The total rainfall / mm
+    - sun (Float64?): / hours
+"""
 function get_frame(short_name::AbstractString)
     csv_str = (@mock _download_as_string(short_name))
 
