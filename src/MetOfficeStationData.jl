@@ -27,13 +27,13 @@ https://www.metoffice.gov.uk/research/climate/maps-and-data/historic-station-dat
 
 # Returns
 A dataframe with the following columns:
-    - yyyy (Int64): The year
-    - mm (Int64): The month
-    - tmax (Float64?): The maximum temperature / °C
-    - tmin (Float64?): The minimum temperature / °C
+    - yyyy (Int64): Year
+    - mm (Int64): Month
+    - tmax (Float64?): Mean daily maximum temperature / °C
+    - tmin (Float64?): Mean daily minimum temperature / °C
     - af (Int64?): Days of air frost / days
-    - rain (Float64?): The total rainfall / mm
-    - sun (Float64?): / hours
+    - rain (Float64?): Total rainfall / mm
+    - sun (Float64?): Total sunshine duration / hours
 """
 function get_frame(short_name::AbstractString)
     csv_str = (@mock _download_as_string(short_name))
@@ -51,6 +51,7 @@ function get_frame(short_name::AbstractString)
         "|" => "",  # This appears in `nairndata.txt`... no explanation given.
         r"all\s+data\s+from\s+[\S\s]+" => "",
         r"Change\s+to[\S\s]+" => "",
+        "Site Closed" => "",
     )
 
     # TODO: parse some of the header information.

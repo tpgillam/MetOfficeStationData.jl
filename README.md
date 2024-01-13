@@ -46,6 +46,13 @@ MetOfficeStationData.get_station_metadata()
 ...
 ```
 
+## Example
+Run the [example Pluto.jl notebook](./examples/pluto_plots.jl) for a simple interactive visualsation of the data.
+
+For example, for the Cambridge Niab station, as of January 2024:
+![Cambridge rainfall](examples/cam_rain.svg)
+![Cambridge temperature](examples/cam_temp.svg)
+
 ## Limitations
 The data files given by the Met Office include various annotations, e.g. noting the types of sensor used, or whether data is preliminary, or even if a station changed location.
 We do not preserve any of this!
