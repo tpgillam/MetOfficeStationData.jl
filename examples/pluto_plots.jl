@@ -7,7 +7,14 @@ using InteractiveUtils
 # This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
 macro bind(def, element)
     quote
-        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local iv = try
+            Base.loaded_modules[Base.PkgId(
+                Base.UUID("6e696c72-6542-2067-7265-42206c756150"),
+                "AbstractPlutoDingetjes",
+            )].Bonds.initial_value
+        catch
+            b -> missing
+        end
         local el = $(esc(element))
         global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
         el
@@ -16,12 +23,12 @@ end
 
 # ╔═╡ 126a6f2e-adfc-11ee-2def-eb30c37b09cc
 begin
-	using DataFrames
-	using Measures
-	using MetOfficeStationData
-	using Plots
-	using PlutoUI
-	using Statistics
+    using DataFrames
+    using Measures
+    using MetOfficeStationData
+    using Plots
+    using PlutoUI
+    using Statistics
 end
 
 # ╔═╡ 813f69f9-be5a-418a-ad0a-4e9c9aae79c3
@@ -45,12 +52,12 @@ metadata = MetOfficeStationData.get_station_metadata();
 
 # ╔═╡ 6efbcc3e-5054-4267-88d2-ea7641c51879
 begin
-	row = only(filter(:short_name => ==(short_name), metadata))
-	md"""
-	- **Station**: $(row[:name])
-	- **Location (lat, lon)**: $(row[:lat]), $(row[:lon])
-	- **First data**: $(row[:year_start])
-	"""
+    row = only(filter(:short_name => ==(short_name), metadata))
+    md"""
+    - **Station**: $(row[:name])
+    - **Location (lat, lon)**: $(row[:lat]), $(row[:lon])
+    - **First data**: $(row[:year_start])
+    """
 end
 
 # ╔═╡ e5f8d573-3859-41cf-8573-f70633dfab39
@@ -61,123 +68,117 @@ annual_rain = dropmissing(combine(groupby(frame, :yyyy), :rain => sum => :rain))
 
 # ╔═╡ 81b8172a-8ce9-470e-8103-71c7c0f3d9f4
 let
-p1 = begin
-    plot(;
-        xlabel="Month",
-        ylabel="Cumulative rainfall / mm",
-        legend=:topleft,
-    )
-    g = groupby(frame, :yyyy; sort=true)
-    for (i, key) in enumerate(keys(g))
-        year = only(key)
-        df = g[key]
-        
-        c, alpha, lw, ls, label = if i == length(g)
-            :blue, 1, 3, :solid, year
-        elseif i == (length(g) - 1)
-            :purple, 1, 2, :dash, year
-        elseif i == (length(g) - 2)
-            :red, 1, 2, :dashdot, year
-        elseif i == (length(g) - 3)
-            :orange, 1, 2, :dashdotdot, year
-        elseif i == (length(g) - 4)
-            :grey, 0.3, 1, :solid, "<$(year + 1)"
-        else
-            :grey, 0.3, 1, :solid, nothing
+    p1 = begin
+        plot(; xlabel="Month", ylabel="Cumulative rainfall / mm", legend=:topleft)
+        g = groupby(frame, :yyyy; sort=true)
+        for (i, key) in enumerate(keys(g))
+            year = only(key)
+            df = g[key]
+
+            c, alpha, lw, ls, label = if i == length(g)
+                :blue, 1, 3, :solid, year
+            elseif i == (length(g) - 1)
+                :purple, 1, 2, :dash, year
+            elseif i == (length(g) - 2)
+                :red, 1, 2, :dashdot, year
+            elseif i == (length(g) - 3)
+                :orange, 1, 2, :dashdotdot, year
+            elseif i == (length(g) - 4)
+                :grey, 0.3, 1, :solid, "<$(year + 1)"
+            else
+                :grey, 0.3, 1, :solid, nothing
+            end
+
+            plot!(
+                vcat([0], df[!, :mm]),
+                vcat([0], cumsum(df[!, :rain]));
+                lw,
+                ls,
+                c,
+                alpha,
+                label,
+                xticks=1:12,
+                yminorgrid=true,
+            )
         end
-
-        plot!(
-            vcat([0], df[!, :mm]),
-            vcat([0], cumsum(df[!, :rain]));
-            lw,
-            ls,
-            c,
-            alpha,
-            label,
-            xticks=1:12,
-            yminorgrid=true,
-        )
+        Plots.current()
     end
-    Plots.current()
-end
 
-p2 = plot(
-    annual_rain[!, :yyyy],
-    annual_rain[!, :rain];
-    xlabel="Year",
-    ylabel="Annual rainfall / mm",
-    legend=nothing,
-)
+    p2 = plot(
+        annual_rain[!, :yyyy],
+        annual_rain[!, :rain];
+        xlabel="Year",
+        ylabel="Annual rainfall / mm",
+        legend=nothing,
+    )
 
-plot(p1, p2; size=(800, 400), margin=3mm)
+    plot(p1, p2; size=(800, 400), margin=3mm)
 end
 
 # ╔═╡ 1da54919-2eae-4da5-9149-f361fcbda082
 first(sort(annual_rain, :rain; rev=true), 5)
 
 # ╔═╡ b72a765b-d0be-46a5-9137-e5e10d80ab3d
-annual_temp = dropmissing(combine(groupby(frame, :yyyy), :tmax => mean => :tmax, :tmin => mean => :tmin));
+annual_temp = dropmissing(
+    combine(groupby(frame, :yyyy), :tmax => mean => :tmax, :tmin => mean => :tmin)
+);
 
 # ╔═╡ d708347b-a84a-4b17-bfb6-6cdaec4c5e01
 let
-p1 = begin
-    plot(;
-		title="Temperature seasonality",
-        xlabel="Month",
-        ylabel="Mean temperature / °C",
-        legend=:topleft,
-    )
-    g = groupby(frame, :yyyy; sort=true)
-    for (i, key) in enumerate(keys(g))
-        year = only(key)
-        df = g[key]
-
-        c, alpha, lw, ls, label = if i == length(g)
-            :blue, 1, 3, :solid, year
-        elseif i == (length(g) - 1)
-            :purple, 1, 2, :dash, year
-        elseif i == (length(g) - 2)
-            :red, 1, 2, :dashdot, year
-        elseif i == (length(g) - 3)
-            :orange, 1, 2, :dashdotdot, year
-        elseif i == (length(g) - 4)
-            :grey, 0.3, 1, :solid, "<$(year + 1)"
-        else
-            :grey, 0.3, 1, :solid, nothing
-        end
-
-        plot!(
-            vcat([0], df[!, :mm]),
-            vcat([0], (df[!, :tmin] .+ df[!, :tmax]) / 2);
-            lw,
-            ls,
-            c,
-            alpha,
-            label,
-            xticks=1:12,
-            yminorgrid=true,
+    p1 = begin
+        plot(;
+            title="Temperature seasonality",
+            xlabel="Month",
+            ylabel="Mean temperature / °C",
+            legend=:topleft,
         )
+        g = groupby(frame, :yyyy; sort=true)
+        for (i, key) in enumerate(keys(g))
+            year = only(key)
+            df = g[key]
+
+            c, alpha, lw, ls, label = if i == length(g)
+                :blue, 1, 3, :solid, year
+            elseif i == (length(g) - 1)
+                :purple, 1, 2, :dash, year
+            elseif i == (length(g) - 2)
+                :red, 1, 2, :dashdot, year
+            elseif i == (length(g) - 3)
+                :orange, 1, 2, :dashdotdot, year
+            elseif i == (length(g) - 4)
+                :grey, 0.3, 1, :solid, "<$(year + 1)"
+            else
+                :grey, 0.3, 1, :solid, nothing
+            end
+
+            plot!(
+                vcat([0], df[!, :mm]),
+                vcat([0], (df[!, :tmin] .+ df[!, :tmax]) / 2);
+                lw,
+                ls,
+                c,
+                alpha,
+                label,
+                xticks=1:12,
+                yminorgrid=true,
+            )
+        end
+        Plots.current()
     end
-    Plots.current()
-end
 
-p2 = begin
-plot(
-    annual_temp[!, :yyyy],
-    annual_temp[!, :tmin];
-	title="Annual mean temperature",
-    xlabel="Year",
-    ylabel="Mean temperature / °C",
-    label="Daily minimum",
-)
-plot!(
-    annual_temp[!, :yyyy],
-    annual_temp[!, :tmax];
-    label="Daily maximum",
-)
-end
+    p2 = begin
+        plot(
+            annual_temp[!, :yyyy],
+            annual_temp[!, :tmin];
+            title="Annual mean temperature",
+            xlabel="Year",
+            ylabel="Mean temperature / °C",
+            label="Daily minimum",
+        )
+        plot!(annual_temp[!, :yyyy], annual_temp[!, :tmax]; label="Daily maximum")
+    end
 
-plot(p1, p2; size=(800, 400), margin=3mm)
+    plot(p1, p2; size=(800, 400), margin=3mm)
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
